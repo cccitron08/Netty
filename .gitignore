@@ -1,0 +1,34 @@
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Scan/output files
+*.txt
+*.out
+*.csv
+*.json
+
+# Bash history
+*.history
+
+# Swap and backup files (common with vim, nano, etc.)
+*~
+*.swp
+*.swo
+*.swn
+*.sublime-workspace
+*.sublime-project
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Python / Node / other dependencies (if you ever mix languages)
+__pycache__/
+*.pyc
+node_modules/
+
+# Miscellaneous
+*.cache
+*.pid
