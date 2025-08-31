@@ -5,8 +5,9 @@ ip_range () {
     valid_ip="Valid"
 
     # User set IP
-    read -p "Please enter an IP address, e.g. 127.0.0.1: " ip_address
-
+    if [[ -z "$ip_address" ]]; then
+        read -p "Please enter an IP address, e.g. 127.0.0.1: " ip_address
+    fi
     # Split into octets
     IFS='. ' read -ra octet <<< "$ip_address"
 
@@ -35,35 +36,57 @@ ip_range () {
     # If valid, restructure and print
     if [[ "$valid_ip" == "Valid" ]]; then
         ip_address="${octet[0]}.${octet[1]}.${octet[2]}.${octet[3]}"
-        echo "IP: $ip_address"
-        alive_ip
+        echo "IP: $ip_address" 
+        test_ip 
     fi
 }
 
-ip_address=8.8.8.8
-
-alive_ip () {
+# Tests if the IP is reachable or not
+test_ip () {
     status="Alive"
-    ping_test=$(ping -i 1.5 -c 3 -q "$ip_address") 
+    ping_test=$(ping -i 1.5 -c 3 -q "$ip_address")  # Pings the IP
     if [[ "$ping_test" == *"0% packet loss"* ]]; then
         echo IP "$ip_address" passed ping test
     else
         echo IP "$ip_address" failed ping test
         status="Unreachable"
     fi
-    traceroute_test=$(traceroute -n -q 1 "$ip_address" | awk '{print $1, $2}')
-    echo "$traceroute_test"
+    traceroute_test=$(traceroute -n -q 1 "$ip_address" | awk '{print $1, $2}') # Traceroute the IP
     if [[ "$traceroute_test" == *"$ip_address" ]]; then
-        echo IP "$ip_address" passed traceroute test
+        echo IP "$ip_address": passed traceroute test
     else
-        echo IP "$ip_address" failed traceroute test
+        echo IP "$ip_address": failed traceroute test
         status="Unreachable"
     fi
     if [[ "$status" == "Alive" ]]; then
-        echo Target "$ip_address" is alive!
+        echo Target "$ip_address": is alive!
     else
-        echo Target "$ip_address" in unreachable!
+        echo Target "$ip_address": in unreachable!
     fi
 
 }
-alive_ip
+
+
+# Help flag response
+show_help() {
+  echo "Usage: $0 -p <port> -i <ip_address> [-h]"
+  echo ""
+  echo "Options:"
+  echo "  -p    Specify port number"
+  echo "  -i    Specify IP address"
+  echo "  -h    Show this help message"
+}
+
+while getopts "p:i:h" opt; do
+    case $opt in
+        p) port=$OPTARG; ;; # Flag for specifing the port
+        h) show_help; exit 0 ;; # Flag for help
+        i) ip_address=$OPTARG; ip_range; ;; # Flag for specifing the ip address
+        *) echo "invalid option";show_help; exit 1 ; # Invalid option response
+    esac
+done
+
+# If flag -i is not specified
+if [[ -z "$ip_address" ]]; then
+    ip_range
+fi
