@@ -36,8 +36,34 @@ ip_range () {
     if [[ "$valid_ip" == "Valid" ]]; then
         ip_address="${octet[0]}.${octet[1]}.${octet[2]}.${octet[3]}"
         echo "IP: $ip_address"
+        alive_ip
     fi
 }
 
-# Run function
-ip_range
+ip_address=8.8.8.8
+
+alive_ip () {
+    status="Alive"
+    ping_test=$(ping -i 1.5 -c 3 -q "$ip_address") 
+    if [[ "$ping_test" == *"0% packet loss"* ]]; then
+        echo IP "$ip_address" passed ping test
+    else
+        echo IP "$ip_address" failed ping test
+        status="Unreachable"
+    fi
+    traceroute_test=$(traceroute -n -q 1 "$ip_address" | awk '{print $1, $2}')
+    echo "$traceroute_test"
+    if [[ "$traceroute_test" == *"$ip_address" ]]; then
+        echo IP "$ip_address" passed traceroute test
+    else
+        echo IP "$ip_address" failed traceroute test
+        status="Unreachable"
+    fi
+    if [[ "$status" == "Alive" ]]; then
+        echo Target "$ip_address" is alive!
+    else
+        echo Target "$ip_address" in unreachable!
+    fi
+
+}
+alive_ip
