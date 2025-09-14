@@ -1,5 +1,18 @@
 #!/bin/bash
 
+
+GREEN='\033[0;32m'
+GRAY='\033[1;30m'
+NC='\033[0m'
+
+echo -e "  ${GRAY}========================================${NC}"
+echo -e "\t${GRAY} _   _      _   _         ${NC}"
+echo -e "\t${GREEN}| \\ | | ___| |_| |_ _   _ ${NC}"
+echo -e "\t${GRAY}|  \\| |/ _ \\ __| __| | | |${NC}"
+echo -e "\t${GREEN}| |\\  |  __/ |_| |_| |_| |${NC}"
+echo -e "\t${GRAY}|_| \\_|\\___|\\__|\\__|\\__, |${NC}"
+echo -e "\t${GRAY}                    |___/ ${NC}"
+echo -e "  ${GRAY}========================================${NC}"
 # Function to validate and normalize IP address
 ip_range () {
     valid_ip="Valid"
