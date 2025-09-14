@@ -8,11 +8,13 @@ ip_range () {
     if [[ -z "$ip_address" ]]; then
         read -p "Please enter an IP address, e.g. 127.0.0.1: " ip_address
     fi
+
     # Split into octets
     IFS='. ' read -ra octet <<< "$ip_address"
 
     # Remove spaces first
     ip_address=$(echo "$ip_address" | tr -d ' ')
+
 
     # Check only digits and dots
     if [[ "${ip_address//./}" =~ ^[[:digit:]]+$ ]]; then
@@ -46,7 +48,7 @@ test_ip () {
     status="Alive"
     ping_test=$(ping -i 1.5 -c 3 -q "$ip_address")  # Pings the IP
     if [[ "$ping_test" == *"0% packet loss"* ]]; then
-        echo IP "$ip_address": passed ping test
+        echo IP "$ip_address""$cidr": passed ping test
     else
         echo IP "$ip_address": failed ping test
         status="Unreachable"
@@ -60,30 +62,30 @@ test_ip () {
     fi
     if [[ "$status" == "Alive" ]]; then
         echo Target "$ip_address": is alive!
-        port_ip
+        port_scan
     else
         echo Target "$ip_address": in unreachable!
     fi
 
 }
 
-port_ip () {
+port_scan () {
     if [[ -z "$port" ]]; then
         echo No port specified, scanning TOP 1000 common ports!
         top_scan=$(nmap "$ip_address" | awk '/^PORT/ || /^[0-9]+\/tcp/ { print }')
-        echo "$top_scan"
+        echo Port scan results saved in "scan_results.txt"g
+        echo "$top_scan" > scan_results.txt
     else
         echo Scanning port "$port"
-        nmap "$port" | awk '/^PORT/ || /^[0-9]+\/tcp/ { print }'
+        port_scan=$(nmap "$ip_address" -p "$port" | awk '/^PORT/ || /^[0-9]+\/tcp/ { print }')
+        echo Port scan results saved in "scan_results.txt"
+        echo "$port_scan" > scan_results.txt
     fi
 }
 
-echo $port
-
-
 # Help flag response
 show_help() {
-  echo "Usage: $0 -p <port> -i <ip_address> [-h]"
+  echo "Usage: $0 -p <port> -i <ip_address> -c <cidr> [-h]"
   echo ""
   echo "Options:"
   echo "  -p    Specify port number"
@@ -91,7 +93,8 @@ show_help() {
   echo "  -h    Show this help message"
 }
 
-while getopts "p:i:h" opt; do
+
+while getopts "p:i:h:c:" opt; do
     case $opt in
         p) port=$OPTARG; ;; # Flag for specifing the port
         h) show_help; exit 0 ;; # Flag for help
@@ -99,6 +102,7 @@ while getopts "p:i:h" opt; do
         *) echo "invalid option";show_help; exit 1 ; # Invalid option response
     esac
 done
+
 
 # Check if the variable $port is non-empty AND not a valid number
 if [[ -n "$port" && ! "$port" =~ ^[0-9]+$ ]]; then
