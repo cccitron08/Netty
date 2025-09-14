@@ -46,9 +46,9 @@ test_ip () {
     status="Alive"
     ping_test=$(ping -i 1.5 -c 3 -q "$ip_address")  # Pings the IP
     if [[ "$ping_test" == *"0% packet loss"* ]]; then
-        echo IP "$ip_address" passed ping test
+        echo IP "$ip_address": passed ping test
     else
-        echo IP "$ip_address" failed ping test
+        echo IP "$ip_address": failed ping test
         status="Unreachable"
     fi
     traceroute_test=$(traceroute -n -q 1 "$ip_address" | awk '{print $1, $2}') # Traceroute the IP
@@ -60,11 +60,25 @@ test_ip () {
     fi
     if [[ "$status" == "Alive" ]]; then
         echo Target "$ip_address": is alive!
+        port_ip
     else
         echo Target "$ip_address": in unreachable!
     fi
 
 }
+
+port_ip () {
+    if [[ -z "$port" ]]; then
+        echo No port specified, scanning TOP 1000 common ports!
+        top_scan=$(nmap "$ip_address" | awk '/^PORT/ || /^[0-9]+\/tcp/ { print }')
+        echo "$top_scan"
+    else
+        echo Scanning port "$port"
+        nmap "$port" | awk '/^PORT/ || /^[0-9]+\/tcp/ { print }'
+    fi
+}
+
+echo $port
 
 
 # Help flag response
@@ -86,7 +100,15 @@ while getopts "p:i:h" opt; do
     esac
 done
 
-# If flag -i is not specified
-if [[ -z "$ip_address" ]]; then
+if [[ -z "$port" && -z "$ip_address" ]]; then # If flag -i is not specified
     ip_range
+fi
+elif [[ ! -z "$port" ]]; then
+    if [[ ! "$port" =~ ^[0-9]+$ ]]; then
+        echo Port can only be a number 0-65535
+    else 
+        if [[ -z "$ip_address" ]]; then
+            ip_range
+        fi
+    fi
 fi
