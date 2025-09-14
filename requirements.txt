@@ -1,0 +1,6 @@
+nmap
+traceroute
+awk
+sed
+ping
+bash>=4.0
