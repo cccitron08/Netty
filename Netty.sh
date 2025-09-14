@@ -95,20 +95,17 @@ while getopts "p:i:h" opt; do
     case $opt in
         p) port=$OPTARG; ;; # Flag for specifing the port
         h) show_help; exit 0 ;; # Flag for help
-        i) ip_address=$OPTARG; ip_range; ;; # Flag for specifing the ip address
+        i) ip_address=$OPTARG; ;; # Flag for specifing the ip address
         *) echo "invalid option";show_help; exit 1 ; # Invalid option response
     esac
 done
 
-if [[ -z "$port" && -z "$ip_address" ]]; then # If flag -i is not specified
+# Check if the variable $port is non-empty AND not a valid number
+if [[ -n "$port" && ! "$port" =~ ^[0-9]+$ ]]; then
+    # If $port contains something but it's not a number, print an error message
+    echo "Port can only be a number 0-65535"
+    # Exit the script with a non-zero status to indicate an error
+    exit 1
+else
     ip_range
-fi
-elif [[ ! -z "$port" ]]; then
-    if [[ ! "$port" =~ ^[0-9]+$ ]]; then
-        echo Port can only be a number 0-65535
-    else 
-        if [[ -z "$ip_address" ]]; then
-            ip_range
-        fi
-    fi
 fi
