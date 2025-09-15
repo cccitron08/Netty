@@ -1,6 +1,7 @@
 #!/bin/bash
 
 all_scan=false
+fping_scan=false
 
 GREEN='\033[0;32m'
 GRAY='\033[1;30m'
@@ -23,19 +24,22 @@ ip_range () {
         read -p "Please enter an IP address, e.g. 127.0.0.1: " ip_address
     fi
 
-    # Split into octets
-    IFS='. ' read -ra octet <<< "$ip_address"
+    # Gets CIDR
+    cidr="/${ip_address##*/}"
+    echo $cidr
 
     # Remove spaces first
-    ip_address=$(echo "$ip_address" | tr -d ' ')
-
+    ip_address=$(echo "$ip_address" | tr -d ' ' | cut -d'/' -f1)
+    
+    # Split into octets
+    IFS='. ' read -ra octet <<< "$ip_address"
 
     # Check only digits and dots
     if [[ "${ip_address//./}" =~ ^[[:digit:]]+$ ]]; then
         for i in "${octet[@]}"; do
             # Check length and range
             if [ "${#i}" -gt 3 ] || (( i > 255 )); then
-                echo -e "IP: $ip_address \t Invalid value: $i"
+                echo -e "IP: "$ip_address" \t Invalid value: $i"
                 valid_ip="Invalid"
             fi
         done
@@ -51,15 +55,21 @@ ip_range () {
 
     # If valid, restructure and print
     if [[ "$valid_ip" == "Valid" ]]; then
-        ip_address="${octet[0]}.${octet[1]}.${octet[2]}.${octet[3]}"
-        echo "IP: $ip_address" 
-        test_ip 
+        ip_address="${octet[0]}.${octet[1]}.${octet[2]}.${octet[3]}${cidr}"
+        echo "IP:$ip_address" 
+        echo $fping_scan
+        if ! $fping_scan; then
+            test_ip
+        else
+            subnet_ping
+        fi
     fi
 }
 
 # Tests if the IP is reachable or not
 test_ip () {
     status="Alive"
+    echo $fping_scan
     ping_test=$(ping -i 1.5 -c 3 -q "$ip_address")  # Pings the IP
     if [[ "$ping_test" == *"0% packet loss"* ]]; then
         echo IP "$ip_address""$cidr": passed ping test
@@ -103,6 +113,10 @@ port_scan () {
     fi
 }
 
+subnet_ping () {
+    fping -a -g "$ip_address" 2>/dev/null | tee ./fping_results.txt
+}
+
 # Help flag response
 show_help() {
   echo "Usage: $0 -p <port> -i <ip_address> -c <cidr> [-h]"
@@ -112,19 +126,20 @@ show_help() {
   echo "  -i    Specify IP address"
   echo "  -h    Show this help message"
   echo "  -a    Scan all ports"
+  echo "  -s    Pings a subnet"
 }
 
 
-while getopts "p:i:h:c:a" opt; do
+while getopts "p:i:h:c:a s" opt; do
     case $opt in
         p) port=$OPTARG; ;; # Flag for specifing the port
         h) show_help; exit 0 ;; # Flag for help
         i) ip_address=$OPTARG; ;; # Flag for specifing the ip address
         a) all_scan=true; ;;  # Flag for nmap to scan all ports
+        s) fping_scan=true; ;; # Flag for fping to scan whole subnet
         *) echo "invalid option";show_help; exit 1 ; # Invalid option response
     esac
 done
-
 
 # Check if the variable $port is non-empty AND not a valid number
 if [[ -n "$port" && ! "$port" =~ ^[0-9]+$ ]]; then
