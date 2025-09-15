@@ -4,3 +4,7 @@ awk
 sed
 ping
 bash>=4.0
+fping
+
+
+Some will require to specify version, just install the newest.
