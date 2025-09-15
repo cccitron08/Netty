@@ -1,5 +1,6 @@
 #!/bin/bash
 
+all_scan=false
 
 GREEN='\033[0;32m'
 GRAY='\033[1;30m'
@@ -94,6 +95,12 @@ port_scan () {
         echo Port scan results saved in "scan_results.txt"
         echo "$port_scan" > scan_results.txt
     fi
+    if $all_scan; then
+        echo Flag -a specified, scanning all ports!
+        all_port_scan=$(nmap -p- --open "$ip_address" | awk '/^PORT/ || /^[0-9]+\/tcp/ { print }')
+        echo Saving results into "all_ports_results.txt"
+        echo "$all_port_scan" > all_ports_results.txt
+    fi
 }
 
 # Help flag response
@@ -104,14 +111,16 @@ show_help() {
   echo "  -p    Specify port number"
   echo "  -i    Specify IP address"
   echo "  -h    Show this help message"
+  echo "  -a    Scan all ports"
 }
 
 
-while getopts "p:i:h:c:" opt; do
+while getopts "p:i:h:c:a" opt; do
     case $opt in
         p) port=$OPTARG; ;; # Flag for specifing the port
         h) show_help; exit 0 ;; # Flag for help
         i) ip_address=$OPTARG; ;; # Flag for specifing the ip address
+        a) all_scan=true; ;;  # Flag for nmap to scan all ports
         *) echo "invalid option";show_help; exit 1 ; # Invalid option response
     esac
 done
