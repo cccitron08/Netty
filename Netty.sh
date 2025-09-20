@@ -146,12 +146,12 @@ run_port_scan () {
     echo -e "${COLOR_GRAY}[~] Starting port scan for $target_ip...${COLOR_NONE}\n"
 
     # Scan top ports if no specific port provided
-    if [[ -z "$target_port" ]]; then
+    if [[ -z "$target_port" && scan_all_ports == false ]]; then
         echo -e "\t[~] No port specified. Scanning top 1000 common ports..."
         scan_output=$(nmap "$target_ip" | awk '/^PORT/ || /^[0-9]+\/tcp/ { print }')
         echo -e "\t[+] Port scan results saved in scan_results.txt\n"
         echo "$scan_output" > scan_results.txt
-    else
+    elif [[ -n "$target_port" ]]; then
         echo -e "\t[~] Scanning port $target_port..."
         port_output=$(nmap "$target_ip" -p "$target_port" | awk '/^PORT/ || /^[0-9]+\/tcp/ { print }')
         echo -e "\t[+] Port scan results saved in scan_results.txt\n"
