@@ -2,6 +2,9 @@
 
 Netty is a small Bash-based network utility for quick host checks, ping/traceroute diagnostics, and port scanning.
 
+DISCLAIMER: THIS TOOL IS MADE ONLY FOR LEARNING PURPOSES TO UNDERSTAND BASH SCRIPTING.
+I DON'T RECCOMEND USING IT, OR CLONING IT ONTO YOUR SYSTEM AS IT PROBABLY CAN BE USED TO PERFORM A PRIVILEGE ESCALATION ON YOUR SYSTEM!!!! 
+
 ## Description
 
 Netty validates and normalizes IPv4 addresses, performs ping checks, runs traceroute, and performs port scans using `nmap`. It also supports scanning entire subnets using `fping`. It is designed as a simple helper script for local or authorized testing.
